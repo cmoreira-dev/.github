@@ -1,0 +1,57 @@
+name: Build and push to ECR
+
+on:
+  workflow_call:
+    inputs:
+      ecr_repository:
+        required: true
+        type: string
+
+permissions:
+  id-token: write   # necessário pro OIDC
+  contents: read
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login no ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Gerar tags da imagem
+        id: tags
+        run: |
+          SHA_TAG="${GITHUB_SHA::7}"
+          TAGS="$SHA_TAG"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAGS="$TAGS,${{ github.ref_name }}"
+          fi
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            TAGS="$TAGS,latest"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: ${{ inputs.ecr_repository }}
+          TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          BUILD_ARGS=()
+          IFS=',' read -ra TAG_LIST <<< "$TAGS"
+          for t in "${TAG_LIST[@]}"; do
+            BUILD_ARGS+=(-t "$REGISTRY/$REPOSITORY:$t")
+          done
+          docker build "${BUILD_ARGS[@]}" .
+          for t in "${TAG_LIST[@]}"; do
+            docker push "$REGISTRY/$REPOSITORY:$t"
+          done
