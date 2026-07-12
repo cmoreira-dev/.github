@@ -6,6 +6,12 @@ on:
       ecr_repository:
         required: true
         type: string
+      aws_region:
+        required: true
+        type: string
+      aws_role_arn:
+        required: true
+        type: string
 
 permissions:
   id-token: write   # necessário pro OIDC
@@ -20,8 +26,8 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ inputs.aws_role_arn }}
+          aws-region: ${{ inputs.aws_region }}
 
       - name: Login no ECR
         id: ecr-login
