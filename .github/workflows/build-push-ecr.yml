@@ -12,6 +12,10 @@ on:
       aws_role_arn:
         required: true
         type: string
+      platforms:
+        required: false
+        type: string
+        default: "linux/amd64,linux/arm64"
 
 permissions:
   id-token: write   # necessário pro OIDC
@@ -46,18 +50,27 @@ jobs:
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push (multi-arch)
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
           TAGS: ${{ steps.tags.outputs.tags }}
+          PLATFORMS: ${{ inputs.platforms }}
         run: |
-          BUILD_ARGS=()
+          TAG_ARGS=()
           IFS=',' read -ra TAG_LIST <<< "$TAGS"
           for t in "${TAG_LIST[@]}"; do
-            BUILD_ARGS+=(-t "$REGISTRY/$REPOSITORY:$t")
+            TAG_ARGS+=(-t "$REGISTRY/$REPOSITORY:$t")
           done
-          docker build "${BUILD_ARGS[@]}" .
-          for t in "${TAG_LIST[@]}"; do
-            docker push "$REGISTRY/$REPOSITORY:$t"
-          done
+
+          docker buildx build \
+            --platform "$PLATFORMS" \
+            "${TAG_ARGS[@]}" \
+            --push \
+            .
