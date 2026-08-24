@@ -40,13 +40,15 @@ jobs:
       - name: Gerar tags da imagem
         id: tags
         run: |
+          # Sem "latest": os repos ECR têm image_tag_mutability=IMMUTABLE, então
+          # tentar reempurrar "latest" a cada build em main falha (tag já existe,
+          # não pode ser sobrescrita) — e o argocd-image-updater (update-strategy
+          # newest-build) já rastreia a tag do SHA diretamente, "latest" não é
+          # mais usado por nada no deploy.
           SHA_TAG="${GITHUB_SHA::7}"
           TAGS="$SHA_TAG"
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAGS="$TAGS,${{ github.ref_name }}"
-          fi
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            TAGS="$TAGS,latest"
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
