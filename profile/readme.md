@@ -1,75 +1,75 @@
 # cmoreira.dev — HomeLab 🚀
 
-Organização do meu homelab: um cluster **Kubernetes (Talos)** que corre sobre
-Proxmox, com workloads e infraestrutura geridos por **GitOps**.
+My homelab organization: a **Kubernetes (Talos)** cluster running on Proxmox,
+with workloads and infrastructure managed through **GitOps**.
 
-**Como as peças encaixam:**
+**How the pieces fit together:**
 
 - **Ingress** via NGINX Gateway Fabric (Gateway API).
-- **GitOps** com Argo CD — cada repo `gitops.*` é reconciliado automaticamente.
-- **IaC em dois níveis:**
-  - *Tier 1* — infra base (AWS + Azure + Proxmox) em `iac.homelab-live-infra`,
-    via Terragrunt/OpenTofu (GitHub Actions para a cloud, `terragrunt` local para Proxmox).
-  - *Tier 2* — dependências de aplicação, reconciliadas no cluster pelo operador
-    **Burrito** a partir da pasta `terraform/` de cada repo GitOps.
+- **GitOps** with Argo CD — every `gitops.*` repo is reconciled automatically.
+- **Two-tier IaC:**
+  - *Tier 1* — base infra (AWS + Azure + Proxmox) in `iac.homelab-live-infra`,
+    via Terragrunt/OpenTofu (GitHub Actions for the cloud, local `terragrunt` for Proxmox).
+  - *Tier 2* — application dependencies, reconciled in-cluster by the **Burrito**
+    operator from each GitOps repo's `terraform/` folder.
 - **Secrets** via external-secrets ← AWS SSM Parameter Store.
-- **Build & registry** — imagens para ECR, push por GitHub Actions com OIDC (sem chaves estáticas).
+- **Build & registry** — images to ECR, pushed by GitHub Actions with OIDC (no static keys).
 
-📖 Documentação completa: **[docs.cmoreira.dev](https://docs.cmoreira.dev)**
+📖 Full documentation: **[docs.cmoreira.dev](https://docs.cmoreira.dev)**
 
-> `🔒` = repositório privado.
+> `🔒` = private repository.
 
 ---
 
-## 📚 Documentação
+## 📚 Documentation
 
-| Repo | Descrição |
-|------|-----------|
-| [docs.cmoreira-dev.github.io](https://github.com/cmoreira-dev/docs.cmoreira-dev.github.io) | Site de documentação (MkDocs) — arquitetura, runbooks e padrões. Publicado em [docs.cmoreira.dev](https://docs.cmoreira.dev). |
+| Repo | Description |
+|------|-------------|
+| [docs.cmoreira-dev.github.io](https://github.com/cmoreira-dev/docs.cmoreira-dev.github.io) | Documentation site (MkDocs) — architecture, runbooks and patterns. Published at [docs.cmoreira.dev](https://docs.cmoreira.dev). |
 
-## 🏗️ Infraestrutura como Código
+## 🏗️ Infrastructure as Code
 
-| Repo | Descrição |
-|------|-----------|
-| [iac.homelab-live-infra](https://github.com/cmoreira-dev/iac.homelab-live-infra) `🔒` | **Tier 1** — estado da infra base (AWS + Azure + Proxmox). Terragrunt + OpenTofu. |
-| [iac-aws-ecr-pipeline](https://github.com/cmoreira-dev/iac-aws-ecr-pipeline) | Módulo Terraform reutilizável: repositórios ECR (create-on-push) + role OIDC/IAM para o pipeline de build/push. |
-| [iac-proxmox-lxc](https://github.com/cmoreira-dev/iac-proxmox-lxc) | Módulo Terraform reutilizável para containers LXC no Proxmox. |
-| [homelab-bootsrap-k3s](https://github.com/cmoreira-dev/homelab-bootsrap-k3s) `🔒` | Scripts de bootstrap do cluster e dos addons base. |
+| Repo | Description |
+|------|-------------|
+| [iac.homelab-live-infra](https://github.com/cmoreira-dev/iac.homelab-live-infra) `🔒` | **Tier 1** — live state of the base infra (AWS + Azure + Proxmox). Terragrunt + OpenTofu. |
+| [iac-aws-ecr-pipeline](https://github.com/cmoreira-dev/iac-aws-ecr-pipeline) | Reusable Terraform module: ECR repositories (create-on-push) + the OIDC/IAM role for the build/push pipeline. |
+| [iac-proxmox-lxc](https://github.com/cmoreira-dev/iac-proxmox-lxc) | Reusable Terraform module for Proxmox LXC containers. |
+| [homelab-bootsrap-k3s](https://github.com/cmoreira-dev/homelab-bootsrap-k3s) `🔒` | Scripts to bootstrap the cluster and its base addons. |
 
 ## ⚙️ Platform Engineering & GitOps
 
-| Repo | Descrição |
-|------|-----------|
-| [gitops.core-addons](https://github.com/cmoreira-dev/gitops.core-addons) `🔒` | Addons base do cluster: cert-manager, NGINX Gateway Fabric, external-secrets, Burrito, Renovate. Dependência de quase todos os outros. |
-| [gitops.ai-core-addons](https://github.com/cmoreira-dev/gitops.ai-core-addons) `🔒` | Addons de inferência IA/GPU — Ollama, LiteLLM. |
-| [gitops.monitoring](https://github.com/cmoreira-dev/gitops.monitoring) `🔒` | Stack de observabilidade (Prometheus, Grafana, Loki). |
-| [gitops.cnpg](https://github.com/cmoreira-dev/gitops.cnpg) | Operador CloudNativePG (PostgreSQL). |
-| [gitops.headlamp](https://github.com/cmoreira-dev/gitops.headlamp) | UI Headlamp para Kubernetes. |
-| [gitops.echoserver](https://github.com/cmoreira-dev/gitops.echoserver) | Echo server — testes de ingress/rede. |
-| [gitops.generic-app-chart](https://github.com/cmoreira-dev/gitops.generic-app-chart) | Helm chart de biblioteca partilhado para apps do homelab (Deployment + Service + HTTPRoute + ExternalSecret). |
-| [gitops.template](https://github.com/cmoreira-dev/gitops.template) | Template para novos repos GitOps de aplicação. |
-| [backstage.homelab](https://github.com/cmoreira-dev/backstage.homelab) | Portal interno de developers (Backstage). |
+| Repo | Description |
+|------|-------------|
+| [gitops.core-addons](https://github.com/cmoreira-dev/gitops.core-addons) `🔒` | Core cluster addons: cert-manager, NGINX Gateway Fabric, external-secrets, Burrito, Renovate. A dependency of almost every other repo. |
+| [gitops.ai-core-addons](https://github.com/cmoreira-dev/gitops.ai-core-addons) `🔒` | AI/GPU inference addons — Ollama, LiteLLM. |
+| [gitops.monitoring](https://github.com/cmoreira-dev/gitops.monitoring) `🔒` | Observability stack (Prometheus, Grafana, Loki). |
+| [gitops.cnpg](https://github.com/cmoreira-dev/gitops.cnpg) | CloudNativePG operator (PostgreSQL). |
+| [gitops.headlamp](https://github.com/cmoreira-dev/gitops.headlamp) | Headlamp Kubernetes UI. |
+| [gitops.echoserver](https://github.com/cmoreira-dev/gitops.echoserver) | Echo server — ingress/networking testing. |
+| [gitops.generic-app-chart](https://github.com/cmoreira-dev/gitops.generic-app-chart) | Shared library Helm chart for homelab apps (Deployment + Service + HTTPRoute + ExternalSecret). |
+| [gitops.template](https://github.com/cmoreira-dev/gitops.template) | Template for new application GitOps repos. |
+| [backstage.homelab](https://github.com/cmoreira-dev/backstage.homelab) | Internal developer portal (Backstage). |
 
-## 🤖 Aplicações
+## 🤖 Applications
 
-### teupadel.com — análise de movimento no padel com IA
+### teupadel.com — AI padel movement analysis
 
-| Repo | Descrição |
-|------|-----------|
-| [api.ia.teupadel.com](https://github.com/cmoreira-dev/api.ia.teupadel.com) `🔒` | Backend (inferência IA + lógica de negócio). |
+| Repo | Description |
+|------|-------------|
+| [api.ia.teupadel.com](https://github.com/cmoreira-dev/api.ia.teupadel.com) `🔒` | Backend (AI inference + business logic). |
 | [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (React). |
-| [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | Deploy GitOps da solução. |
+| [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | GitOps deployment for the solution. |
 
-### Sara — acordes e cifras sem anúncios (`local.cmoreira.dev/sara`)
+### Sara — ad-free chords & lyrics (`local.cmoreira.dev/sara`)
 
-| Repo | Descrição |
-|------|-----------|
-| [api.ia.local-sara](https://github.com/cmoreira-dev/api.ia.local-sara) `🔒` | Backend FastAPI que resolve acordes/letras do Cifra Club. |
-| [ui.ia.local-sara](https://github.com/cmoreira-dev/ui.ia.local-sara) `🔒` | Player de prática de cifras, sem anúncios. |
-| [gitops.local-sara](https://github.com/cmoreira-dev/gitops.local-sara) | Deploy GitOps da Sara. |
+| Repo | Description |
+|------|-------------|
+| [api.ia.local-sara](https://github.com/cmoreira-dev/api.ia.local-sara) `🔒` | FastAPI backend that resolves Cifra Club chords/lyrics. |
+| [ui.ia.local-sara](https://github.com/cmoreira-dev/ui.ia.local-sara) `🔒` | Ad-free chords/lyrics practice player. |
+| [gitops.local-sara](https://github.com/cmoreira-dev/gitops.local-sara) | GitOps deployment for Sara. |
 
 ## 🧩 Org
 
-| Repo | Descrição |
-|------|-----------|
-| [.github](https://github.com/cmoreira-dev/.github) | Perfil público da org (este README) e workflows reutilizáveis. |
+| Repo | Description |
+|------|-------------|
+| [.github](https://github.com/cmoreira-dev/.github) | Org public profile (this README) and reusable workflows. |
