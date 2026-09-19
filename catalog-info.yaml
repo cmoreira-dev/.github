@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: github-org-profile
+  description: 'GitHub org profile (public README) and reusable Actions workflows (build-push-ecr.yml — Docker build + push to ECR, used by most other repos'' CI)'
+  annotations:
+    github.com/project-slug: cmoreira-dev/.github
+spec:
+  type: other
+  owner: platform-team
+  system: homelab-platform
+  lifecycle: production
