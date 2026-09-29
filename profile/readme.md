@@ -34,6 +34,7 @@ with workloads and infrastructure managed through **GitOps**.
 | [iac.homelab-live-infra](https://github.com/cmoreira-dev/iac.homelab-live-infra) `🔒` | **Tier 1** — live state of the base infra (AWS + Azure + Proxmox). Terragrunt + OpenTofu. |
 | [iac-aws-ecr-pipeline](https://github.com/cmoreira-dev/iac-aws-ecr-pipeline) | Reusable Terraform module: ECR repositories (create-on-push) + the OIDC/IAM role for the build/push pipeline. |
 | [iac-proxmox-lxc](https://github.com/cmoreira-dev/iac-proxmox-lxc) | Reusable Terraform module for Proxmox LXC containers. |
+| [iac-mail-routing](https://github.com/cmoreira-dev/iac-mail-routing) | Reusable Terraform module: Cloudflare Email Routing + inbound DNS, and AWS SES transactional mail (email only, not tied to one product). |
 | [homelab-bootsrap-k3s](https://github.com/cmoreira-dev/homelab-bootsrap-k3s) `🔒` | Scripts to bootstrap the cluster and its base addons. |
 
 ## ⚙️ Platform Engineering & GitOps
@@ -49,6 +50,7 @@ with workloads and infrastructure managed through **GitOps**.
 | [gitops.generic-app-chart](https://github.com/cmoreira-dev/gitops.generic-app-chart) | Shared library Helm chart for homelab apps (Deployment + Service + HTTPRoute + ExternalSecret). |
 | [gitops.template](https://github.com/cmoreira-dev/gitops.template) | Template for new application GitOps repos. |
 | [backstage.homelab](https://github.com/cmoreira-dev/backstage.homelab) | Internal developer portal (Backstage). |
+| [gitops.backstage.homelab](https://github.com/cmoreira-dev/gitops.backstage.homelab) `🔒` | GitOps deployment for Backstage (official Helm chart + CNPG Postgres). |
 
 ## 🤖 Applications
 
@@ -56,8 +58,9 @@ with workloads and infrastructure managed through **GitOps**.
 
 | Repo | Description |
 |------|-------------|
-| [api.ia.teupadel.com](https://github.com/cmoreira-dev/api.ia.teupadel.com) `🔒` | Backend (AI inference + business logic). |
-| [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (React). |
+| [api.ia.teupadel.com](https://github.com/cmoreira-dev/api.ia.teupadel.com) `🔒` | Backend (FastAPI): accounts, bolas, async analysis, report generation. |
+| [api.ia.pose-estimation](https://github.com/cmoreira-dev/api.ia.pose-estimation) `🔒` | GPU pose-estimation processor (YOLOv8n-pose / ONNX Runtime). |
+| [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (Next.js SSR). |
 | [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | GitOps deployment for the solution. |
 
 ### Sara — ad-free chords & lyrics (`local.cmoreira.dev/sara`)
@@ -67,6 +70,13 @@ with workloads and infrastructure managed through **GitOps**.
 | [api.ia.local-sara](https://github.com/cmoreira-dev/api.ia.local-sara) `🔒` | FastAPI backend that resolves Cifra Club chords/lyrics. |
 | [ui.ia.local-sara](https://github.com/cmoreira-dev/ui.ia.local-sara) `🔒` | Ad-free chords/lyrics practice player. |
 | [gitops.local-sara](https://github.com/cmoreira-dev/gitops.local-sara) | GitOps deployment for Sara. |
+
+### psirenatalima.com
+
+| Repo | Description |
+|------|-------------|
+| [ui.psirenatalima.com](https://github.com/cmoreira-dev/ui.psirenatalima.com) `🔒` | Site frontend. |
+| [gitops.psirenatalima.com](https://github.com/cmoreira-dev/gitops.psirenatalima.com) `🔒` | GitOps deployment for the site. |
 
 ## 🧩 Org
 
