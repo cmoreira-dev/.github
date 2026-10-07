@@ -25,7 +25,7 @@ with workloads and infrastructure managed through **GitOps**.
 
 | Repo | Description |
 |------|-------------|
-| [docs.cmoreira-dev.github.io](https://github.com/cmoreira-dev/docs.cmoreira-dev.github.io) | Documentation site (MkDocs) — architecture, runbooks and patterns. Published at [docs.cmoreira.dev](https://docs.cmoreira.dev). |
+| [docs.cmoreira.dev](https://github.com/cmoreira-dev/docs.cmoreira.dev) | Public platform notes (MkDocs) — patterns, decisions and lessons learned. Published at [docs.cmoreira.dev](https://docs.cmoreira.dev). Detailed docs live in each repo's `docs/`. |
 
 ## 🏗️ Infrastructure as Code
 
