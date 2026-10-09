@@ -43,6 +43,7 @@ with workloads and infrastructure managed through **GitOps**.
 |------|-------------|
 | [gitops.core-addons](https://github.com/cmoreira-dev/gitops.core-addons) `🔒` | Core cluster addons: cert-manager, NGINX Gateway Fabric, external-secrets, Burrito, Renovate. A dependency of almost every other repo. |
 | [gitops.ai-core-addons](https://github.com/cmoreira-dev/gitops.ai-core-addons) `🔒` | AI/GPU inference addons — Ollama, LiteLLM. |
+| [gitops.kagent](https://github.com/cmoreira-dev/gitops.kagent) `🔒` | kagent (Kubernetes-native AI agents) with read-only agents on top of LiteLLM. |
 | [gitops.monitoring](https://github.com/cmoreira-dev/gitops.monitoring) `🔒` | Observability stack (Prometheus, Grafana, Loki). |
 | [gitops.cnpg](https://github.com/cmoreira-dev/gitops.cnpg) | CloudNativePG operator (PostgreSQL). |
 | [gitops.headlamp](https://github.com/cmoreira-dev/gitops.headlamp) | Headlamp Kubernetes UI. |
