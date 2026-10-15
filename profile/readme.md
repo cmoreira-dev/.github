@@ -47,7 +47,6 @@ with workloads and infrastructure managed through **GitOps**.
 | [gitops.monitoring](https://github.com/cmoreira-dev/gitops.monitoring) `🔒` | Observability stack (Prometheus, Grafana, Loki). |
 | [gitops.cnpg](https://github.com/cmoreira-dev/gitops.cnpg) | CloudNativePG operator (PostgreSQL). |
 | [gitops.headlamp](https://github.com/cmoreira-dev/gitops.headlamp) | Headlamp Kubernetes UI. |
-| [gitops.echoserver](https://github.com/cmoreira-dev/gitops.echoserver) | Echo server — ingress/networking testing. |
 | [gitops.generic-app-chart](https://github.com/cmoreira-dev/gitops.generic-app-chart) | Shared library Helm chart for homelab apps (Deployment + Service + HTTPRoute + ExternalSecret). |
 | [gitops.template](https://github.com/cmoreira-dev/gitops.template) | Template for new application GitOps repos. |
 | [backstage.homelab](https://github.com/cmoreira-dev/backstage.homelab) | Internal developer portal (Backstage). |
