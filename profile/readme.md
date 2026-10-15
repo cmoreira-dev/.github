@@ -63,7 +63,7 @@ with workloads and infrastructure managed through **GitOps**.
 | [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (Next.js SSR). |
 | [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | GitOps deployment for the solution. |
 
-### Sara — ad-free chords & lyrics (`local.cmoreira.dev/sara`)
+### Sara — ad-free chords & lyrics (`sara.cmoreira.dev`)
 
 | Repo | Description |
 |------|-------------|
