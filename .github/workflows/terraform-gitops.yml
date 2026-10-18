@@ -37,7 +37,7 @@ on:
         type: string
         default: 1.12.6
       environment:
-        description: GitHub environment of the apply job. Configure required reviewers on it.
+        description: GitHub environment of the apply job (the apply role trusts it, from refs/heads/main only).
         type: string
         default: production
 
@@ -105,7 +105,7 @@ jobs:
   apply:
     if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}   # no required reviewers on the free plan: the gate is the merge to main and the role trust
     permissions:
       id-token: write
       contents: read
