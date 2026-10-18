@@ -35,7 +35,7 @@ One job per terraform root. A folder that is not in the caller is never applied 
 
 ## Guardrails
 
-- The plan role trusts only the `pull_request` context and is read-only (ReadOnlyAccess plus state read).
+- The plan role trusts only the `pull_request` context and is read-only (state read of its own prefix plus IAM reads on its own users; no ReadOnlyAccess, since that can read every state file).
 - The apply role trusts only the `production` environment, has no IAM beyond users with its own name prefixes,
   and every user it creates must carry the `gitops-terraform-boundary` policy (a ceiling: ECR read, SSM read,
   product S3 buckets, queues, mail). Extend the boundary deliberately.
