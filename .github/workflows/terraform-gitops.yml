@@ -1,0 +1,134 @@
+name: terraform-gitops
+
+# Reusable workflow (ADR 0001, phase 4): plan on pull request, apply on push to the default
+# branch behind the protected environment. For the `terraform/<folder>` of a gitops.<app> repo.
+#
+# Call it from the repo (see docs/terraform-gitops.md for the full caller and the one-time setup):
+#
+#   jobs:
+#     ecr-pull-iam:
+#       uses: cmoreira-dev/.github/.github/workflows/terraform-gitops.yml@main
+#       with:
+#         directory: terraform/ecr-pull-iam
+#         plan-role-arn: ${{ vars.TF_PLAN_ROLE_ARN }}
+#         apply-role-arn: ${{ vars.TF_APPLY_ROLE_ARN }}
+#
+# The roles come from live-infra (aws/.../gitops-terraform-roles): the plan role only trusts the
+# pull_request context and is read-only, the apply role only trusts the `production` environment.
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: Terraform root to run in, relative to the repo root.
+        type: string
+        required: true
+      plan-role-arn:
+        type: string
+        required: true
+      apply-role-arn:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        default: us-east-1
+      tofu-version:
+        description: Keep equal to the version pinned in iac.homelab-live-infra and platform-bootstrap.
+        type: string
+        default: 1.12.6
+      environment:
+        description: GitHub environment of the apply job. Configure required reviewers on it.
+        type: string
+        default: production
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: tf-plan-${{ github.repository }}-${{ inputs.directory }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ inputs.plan-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ inputs.tofu-version }}
+          tofu_wrapper: false
+
+      - run: tofu init -input=false -no-color
+
+      # -lock=false: the plan role is read-only and must never block an apply.
+      - name: tofu plan
+        id: plan
+        run: |
+          set -o pipefail
+          tofu plan -input=false -lock=false -no-color 2>&1 | tee plan.txt
+
+      - name: Render comment
+        if: always()
+        env:
+          OUTCOME: ${{ steps.plan.outcome }}
+          DIR: ${{ inputs.directory }}
+        run: |
+          {
+            echo "### \`tofu plan\` in \`$DIR\` — \`$OUTCOME\`"
+            echo
+            echo '<details><summary>output</summary>'
+            echo
+            echo '```'
+            tail -c 60000 plan.txt 2>/dev/null || echo "(no output)"
+            echo '```'
+            echo '</details>'
+          } > comment.md
+
+      - uses: marocchino/sticky-pull-request-comment@v3.0.5
+        if: always()
+        with:
+          header: tf-${{ inputs.directory }}
+          path: ${{ inputs.directory }}/comment.md
+
+  apply:
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: tf-apply-${{ github.repository }}-${{ inputs.directory }}   # one apply per state at a time
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ inputs.apply-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ inputs.tofu-version }}
+          tofu_wrapper: false
+
+      - run: tofu init -input=false -no-color
+
+      # Plan again right before applying: what was reviewed on the PR may be stale by now.
+      - name: tofu plan
+        run: tofu plan -input=false -no-color -out=tfplan
+
+      - name: tofu apply
+        run: tofu apply -input=false -no-color tfplan
