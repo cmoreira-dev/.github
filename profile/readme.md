@@ -34,8 +34,11 @@ with workloads and infrastructure managed through **GitOps**.
 | [iac.homelab-live-infra](https://github.com/cmoreira-dev/iac.homelab-live-infra) `🔒` | **Tier 1** — live state of the base infra (AWS + Azure + GCP + Cloudflare). Terragrunt + OpenTofu. |
 | [iac-aws-ecr-pipeline](https://github.com/cmoreira-dev/iac-aws-ecr-pipeline) | Reusable Terraform module: ECR repositories (create-on-push) + the OIDC/IAM role for the build/push pipeline. |
 | [iac-proxmox-lxc](https://github.com/cmoreira-dev/iac-proxmox-lxc) | Reusable Terraform module for Proxmox LXC containers. |
+| [iac-argocd](https://github.com/cmoreira-dev/iac-argocd) | Reusable Terraform module: Argo CD as a Helm release. |
+| [iac-proxmox-vm](https://github.com/cmoreira-dev/iac-proxmox-vm) | Reusable Terraform module: one guarded Proxmox VM (never destroyed or rebooted by a plan). |
+| [iac-talos-cluster](https://github.com/cmoreira-dev/iac-talos-cluster) | Reusable Terraform module: renders the Talos machine configuration of a cluster (render only). |
 | [iac-mail-routing](https://github.com/cmoreira-dev/iac-mail-routing) | Reusable Terraform module: Cloudflare Email Routing + inbound DNS, and AWS SES transactional mail (email only, not tied to one product). |
-| [platform-bootstrap](https://github.com/cmoreira-dev/platform-bootstrap) `🔒` | The cluster layer (OpenTofu): Proxmox GPU worker, Talos machine configs and Argo CD. Replaces `homelab-bootsrap-k3s`, now archived. |
+| [platform-bootstrap](https://github.com/cmoreira-dev/platform-bootstrap) `🔒` | Folded into `iac.homelab-live-infra` (`cluster/` units + `bootstrap/`); kept only as history and to be archived. |
 
 ## ⚙️ Platform Engineering & GitOps
 
