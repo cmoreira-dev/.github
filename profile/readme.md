@@ -10,8 +10,8 @@ with workloads and infrastructure managed through **GitOps**.
 - **Two-tier IaC:**
   - *Tier 1* — base infra (AWS + Azure + Proxmox) in `iac.homelab-live-infra`,
     via Terragrunt/OpenTofu (GitHub Actions for the cloud, local `terragrunt` for Proxmox).
-  - *Tier 2* — application dependencies, reconciled in-cluster by the **Burrito**
-    operator from each GitOps repo's `terraform/` folder.
+  - *Tier 2* — application dependencies, planned on pull request and applied on merge by the
+    `terraform-gitops` GitHub Actions reusable workflow, from each GitOps repo's `terraform/` folder.
 - **Secrets** via external-secrets ← AWS SSM Parameter Store.
 - **Build & registry** — images to ECR, pushed by GitHub Actions with OIDC (no static keys).
 
@@ -44,7 +44,7 @@ with workloads and infrastructure managed through **GitOps**.
 
 | Repo | Description |
 |------|-------------|
-| [gitops.core-addons](https://github.com/cmoreira-dev/gitops.core-addons) `🔒` | Core cluster addons: cert-manager, NGINX Gateway Fabric, external-secrets, Burrito, Renovate. A dependency of almost every other repo. |
+| [gitops.core-addons](https://github.com/cmoreira-dev/gitops.core-addons) `🔒` | Core cluster addons: cert-manager, NGINX Gateway Fabric, external-secrets, Renovate. A dependency of almost every other repo. |
 | [gitops.ai-core-addons](https://github.com/cmoreira-dev/gitops.ai-core-addons) `🔒` | AI/GPU inference addons — Ollama, LiteLLM. |
 | [gitops.kagent](https://github.com/cmoreira-dev/gitops.kagent) `🔒` | kagent (Kubernetes-native AI agents) with read-only agents on top of LiteLLM. |
 | [gitops.monitoring](https://github.com/cmoreira-dev/gitops.monitoring) `🔒` | Observability stack (Prometheus, Grafana, Loki). |
