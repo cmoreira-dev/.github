@@ -16,6 +16,21 @@ on:
         required: false
         type: string
         default: "linux/amd64,linux/arm64"
+      context:
+        description: Build context (subfolder for monorepos). Defaults to the repo root.
+        required: false
+        type: string
+        default: "."
+      file:
+        description: Dockerfile path. Empty = <context>/Dockerfile (docker default).
+        required: false
+        type: string
+        default: ""
+      cache_scope:
+        description: Enables the GitHub Actions build cache under this scope. Empty = no cache.
+        required: false
+        type: string
+        default: ""
 
 permissions:
   id-token: write   # necessário pro OIDC
@@ -58,13 +73,29 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # Exposes ACTIONS_RUNTIME_TOKEN/cache URL to the docker CLI (needed for type=gha).
+      - name: Expose GitHub runtime for build cache
+        if: inputs.cache_scope != ''
+        uses: crazy-max/ghaction-github-runtime@04d248b84655b509d8c44dc1d6f990c879747487 # v4.0.0
+
       - name: Build and push (multi-arch)
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
           TAGS: ${{ steps.tags.outputs.tags }}
           PLATFORMS: ${{ inputs.platforms }}
+          CONTEXT: ${{ inputs.context }}
+          DOCKERFILE: ${{ inputs.file }}
+          CACHE_SCOPE: ${{ inputs.cache_scope }}
         run: |
+          EXTRA_ARGS=()
+          if [ -n "$DOCKERFILE" ]; then
+            EXTRA_ARGS+=(--file "$DOCKERFILE")
+          fi
+          if [ -n "$CACHE_SCOPE" ]; then
+            EXTRA_ARGS+=(--cache-from "type=gha,scope=$CACHE_SCOPE" --cache-to "type=gha,mode=max,scope=$CACHE_SCOPE")
+          fi
+
           TAG_ARGS=()
           IFS=',' read -ra TAG_LIST <<< "$TAGS"
           for t in "${TAG_LIST[@]}"; do
@@ -74,5 +105,6 @@ jobs:
           docker buildx build \
             --platform "$PLATFORMS" \
             "${TAG_ARGS[@]}" \
+            "${EXTRA_ARGS[@]}" \
             --push \
-            .
+            "$CONTEXT"
