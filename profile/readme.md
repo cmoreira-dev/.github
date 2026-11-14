@@ -81,6 +81,12 @@ with workloads and infrastructure managed through **GitOps**.
 | [ui.psirenatalima.com](https://github.com/cmoreira-dev/ui.psirenatalima.com) `🔒` | Site frontend. |
 | [gitops.psirenatalima.com](https://github.com/cmoreira-dev/gitops.psirenatalima.com) `🔒` | GitOps deployment for the site. |
 
+### Convert to 3D — photo to printable 3D model
+
+| Repo | Description |
+|------|-------------|
+| [app.convert-to-3d](https://github.com/cmoreira-dev/app.convert-to-3d) `🔒` | Monorepo (`api/`, `ui/`, `gitops/`): photo to printable STL/3MF, self-hosted on the GPU node. First `app.*` repo (code + GitOps together). |
+
 ## 🧩 Org
 
 | Repo | Description |
