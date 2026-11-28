@@ -59,14 +59,19 @@ jobs:
             echo "Base $base not in history (force push?): running everything."; all=true
           else
             # Three-dot: diff against the merge base, correct for PRs and fast-forward pushes.
-            files=$(git diff --name-only "${base}...HEAD")
+            files=$(git -c core.quotePath=false diff --name-only "${base}...HEAD")
             echo "Changed files:"; sed 's/^/  /' <<<"$files"
+            # A path git still had to quote (control characters) cannot be matched reliably: fail safe.
+            if grep -q '^"' <<<"$files"; then
+              echo "Quoted path in the diff: running everything."; all=true
+            fi
             grep -qE "$SHARED" <<<"$files" && all=true
           fi
 
           json='{}'
           for f in $FOLDERS; do
-            if [ "$all" = true ] || grep -q "^${f}/" <<<"${files:-}"; then v=true; else v=false; fi
+            # Folder test by pathspec, not by parsing the name list.
+            if [ "$all" = true ] || ! git diff --quiet "${base}...HEAD" -- "${f}/"; then v=true; else v=false; fi
             json=$(jq -c --arg k "$f" --argjson v "$v" '. + {($k): $v}' <<<"$json")
           done
           echo "changed=$json"
