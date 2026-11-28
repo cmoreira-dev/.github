@@ -53,14 +53,14 @@ O que falta é tirar o registo manual do Argo e generalizar o resto.
 
 Um PR por mudança, validado antes do merge (padrão de cutover).
 
-Estado (2026-11-28):
+Estado (2026-11-28, Wave 0 concluída):
 
 | Item | PR | Estado |
 |---|---|---|
-| ApplicationSets no módulo (`applicationsets`, `adopt_applicationsets`) | iac-argocd#3 | aberto; depois do merge, tag `v0.2.0` |
-| `cluster/argocd`: adotar `gitops-repos`, criar `app-repos`, `preserveResourcesOnDeletion` | iac.homelab-live-infra#70 | draft até `v0.2.0`; **merge = apply** (`AUTO_APPLY_UNITS`) |
-| ECR: `app.*` na trust do role de push | iac.homelab-live-infra#71 | aberto; merge = apply |
-| Workflows reutilizáveis `app-changes`, `app-gitops-validate`, `app-ci-gate` + template `app-ci` | .github (este PR) | aberto |
+| ApplicationSets no módulo (`applicationsets`, `adopt_applicationsets`) | iac-argocd#3 | merged, tag `v0.2.0` |
+| `cluster/argocd`: adotar `gitops-repos`, criar `app-repos`, `preserveResourcesOnDeletion` | iac.homelab-live-infra#70, #72, #73 | aplicado 2026-11-28 (run 46132573378); #73 esvazia `adopt_applicationsets` |
+| ECR: `app.*` na trust do role de push | iac.homelab-live-infra#71 | aplicado e verificado |
+| Workflows reutilizáveis `app-changes`, `app-gitops-validate`, `app-ci-gate` + template `app-ci` | .github#22 | merged |
 
 Descobertas que mudaram o plano:
 - O `platform-bootstrap` foi arquivado em 2026-10-19; a camada do cluster vive em `iac.homelab-live-infra/cluster/*`
@@ -70,6 +70,13 @@ Descobertas que mudaram o plano:
 - Repos novos recebem o subject OIDC imutável (`repo:org@<id>/<repo>@<repo_id>`): o registo Tier 2 do `app.documents`
   só pode ser feito depois de o repo existir (Wave 5). O ECR aceita as duas formas, por isso foi pré-registado.
 - A root `convert-to-3d` é adotada pelo pai `app.convert-to-3d` que o `app-repos` cria; não é preciso apagá-la.
+- O `gitops-repos` vivo tinha um `template` vazio por defeito dentro do generator; o provider `kubernetes` não o
+  consegue remover num update (a CRD exige `metadata`/`destination`), por isso o YAML declara-o tal como está (#72).
+- O runner `rasp-srv-02` falhou com "No space left on device": tmpfs do `_work` subido de 256 MB para 512 MB.
+
+Verificado no cluster (2026-11-28): os dois ApplicationSets com `preserveResourcesOnDeletion: true` e geridos pelo
+OpenTofu; todos os pais `gitops.*` Synced/Healthy; `app.convert-to-3d` criado pelo `app-repos` e a rastrear a root
+`convert-to-3d`. **Wave 0 concluída**; a Wave 1 pode começar.
 - Renovate tem acesso a todos os repos (`selection=all`). O token do image-updater só fica provado no write-back da Wave 1.
 
 1. **ApplicationSets com dono e a descobrir `app.*`** (iac-argocd#3 + live-infra#70). O `gitops-repos` não tinha dono
