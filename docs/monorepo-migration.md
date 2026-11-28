@@ -161,7 +161,7 @@ Cada wave é independente; dá para parar depois de qualquer uma com tudo a func
 | 1 `app.psirenatalima` | **concluída 2026-11-28**: adotada sem restart, cadeia provada (imagem `6f03607`, write-back `5068a15`), repos antigos arquivados |
 | 2 `app.rapporthub` | **concluída 2026-11-28**: idem (imagem `6142c3a`); chart em `gitops/helm/site` |
 | 3 `app.sara` | **concluída 2026-11-28**: idem (api e ui `1325499`); TechDocs por pasta (`techdocs-ref: dir:./api` etc.) |
-| 4 `app.teupadel` | repo criado e CI verde (testes da API com Postgres, testes do processor, gitops), render Helm e kustomize do CNPG idênticos; **cutover por fazer** (fora de horário de uso; PRs humanos abertos: api.ia.teupadel.com#41, api.ia.pose-estimation#43) |
+| 4 `app.teupadel` | repo criado e CI verde (testes da API com Postgres, testes do processor, gitops), render Helm e kustomize do CNPG idênticos; **cutover por fazer** |
 | 5 documents, matrix-agent | por começar: o painel Esteira tem worktrees ativos sobre PRs destes repos; congelar primeiro |
 | 6 limpeza | por começar |
 
