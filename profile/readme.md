@@ -6,12 +6,12 @@ with workloads and infrastructure managed through **GitOps**.
 **How the pieces fit together:**
 
 - **Ingress** via NGINX Gateway Fabric (Gateway API).
-- **GitOps** with Argo CD — every `gitops.*` repo is reconciled automatically.
+- **GitOps** with Argo CD — every `gitops.*` repo (platform) and the `gitops/` folder of every `app.*` repo are reconciled automatically.
 - **Two-tier IaC:**
   - *Tier 1* — base infra (AWS + Azure + Proxmox) in `iac.homelab-live-infra`,
     via Terragrunt/OpenTofu (GitHub Actions for the cloud, local `terragrunt` for Proxmox).
   - *Tier 2* — application dependencies, planned on pull request and applied on merge by the
-    `terraform-gitops` GitHub Actions reusable workflow, from each GitOps repo's `terraform/` folder.
+    `terraform-gitops` GitHub Actions reusable workflow, from the `iac/` folder of each `app.*` repo (or `terraform/` of a platform `gitops.*` repo).
 - **Secrets** via external-secrets ← AWS SSM Parameter Store.
 - **Build & registry** — images to ECR, pushed by GitHub Actions with OIDC (no static keys).
 
@@ -86,6 +86,18 @@ with workloads and infrastructure managed through **GitOps**.
 | Repo | Description |
 |------|-------------|
 | [app.convert-to-3d](https://github.com/cmoreira-dev/app.convert-to-3d) `🔒` | Monorepo (`api/`, `ui/`, `gitops/`): photo to printable STL/3MF, self-hosted on the GPU node. First `app.*` repo (code + GitOps together). |
+
+### Documents — household document service
+
+| Repo | Description |
+|------|-------------|
+| [app.documents](https://github.com/cmoreira-dev/app.documents) `🔒` | `api/` (FastAPI, classifies contracts and answers with citations using local-only models), `iac/` (S3 bucket, Tier 2) and `gitops/` (Helm + CNPG). |
+
+### Matrix agent
+
+| Repo | Description |
+|------|-------------|
+| [app.matrix-agent](https://github.com/cmoreira-dev/app.matrix-agent) `🔒` | `api/` (Matrix bot in front of the kagent agents and the documents service) and `gitops/`. |
 
 ## 🧩 Org
 
