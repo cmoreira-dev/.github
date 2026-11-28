@@ -2,7 +2,9 @@ name: ci
 
 # CI of an app.* monorepo (one repo per application: api/, ui/, iac/, gitops/).
 # Only the folders that changed run; `ci-ok / ci-ok` is the single required check.
-# Replace <app> and drop the blocks of folders this repo does not have.
+# Replace <app> and drop the blocks of folders this repo does not have. New apps come from the Backstage
+# new-app template, which renders this same shape; keep the marker lines (`gitops` in folders, the gitops/ section
+# comment, `- gitops-validate` in ci-ok) so add-component can extend it.
 #
 # Repo setup: variables AWS_REGION, AWS_ROLE_ARN (ECR push role), PUBLISH_ENABLED ("true" once the
 # app has moved here), TF_PLAN_ROLE_ARN / TF_APPLY_ROLE_ARN (only with iac/), environment
@@ -29,7 +31,12 @@ jobs:
       contents: read
     uses: cmoreira-dev/.github/.github/workflows/app-changes.yml@main
     with:
-      folders: api ui iac gitops
+      # One folder per line; the Backstage add-component template inserts new folders above `gitops`.
+      folders: >-
+        api
+        ui
+        iac
+        gitops
 
   # ---------------------------------------------------------------- api/
   api-test:
@@ -146,7 +153,17 @@ jobs:
   # ---------------------------------------------------------------- gate
   ci-ok:
     if: always()
-    needs: [changes, api-test, api-build, api-publish, ui-test, ui-build, ui-publish, iac, gitops-validate]
+    # add-component inserts new jobs above `- gitops-validate`.
+    needs:
+      - changes
+      - api-test
+      - api-build
+      - api-publish
+      - ui-test
+      - ui-build
+      - ui-publish
+      - iac
+      - gitops-validate
     uses: cmoreira-dev/.github/.github/workflows/app-ci-gate.yml@main
     with:
       needs: ${{ toJSON(needs) }}
