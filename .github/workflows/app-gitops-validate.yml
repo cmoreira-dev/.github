@@ -46,8 +46,10 @@ jobs:
           shopt -s nullglob
           for chart in gitops/helm/*/; do
             echo "== $chart"
-            # Vendored dependencies (charts/*.tgz) are used as-is; fetch only when missing.
-            if ! ls "$chart"charts/*.tgz >/dev/null 2>&1; then helm dependency build "$chart" >/dev/null; fi
+            # Vendored dependencies (charts/*.tgz) are used as-is; fetch only when missing. A glob array, not `ls`:
+            # under nullglob an unmatched `ls dir/*.tgz` becomes a bare `ls`, which succeeds and skips the build.
+            vendored=("$chart"charts/*.tgz)
+            if [ "${#vendored[@]}" -eq 0 ]; then helm dependency build "$chart" >/dev/null; fi
             helm lint --quiet "$chart"
             helm template "$(basename "$chart")" "$chart" --namespace "$NAMESPACE" | kc -
           done
