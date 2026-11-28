@@ -1,0 +1,73 @@
+name: app-changes
+
+# Reusable: which top-level folders of an app.* monorepo changed. Output `changed` is a JSON map
+# folder -> bool, read by the caller as `fromJSON(needs.changes.outputs.changed).api`.
+# Falls back to "everything changed" when the diff base is unknown (first push, force push,
+# manual run), so a change is never silently skipped. Files outside the listed folders that match
+# `shared` (CI, scripts) also mark everything as changed.
+
+on:
+  workflow_call:
+    inputs:
+      folders:
+        description: Space-separated top-level folders to report on, e.g. "api ui gitops iac".
+        type: string
+        required: true
+      shared:
+        description: Extended regex of paths that force every folder to run.
+        type: string
+        default: '^(\.github/|scripts/|Makefile$)'
+    outputs:
+      changed:
+        description: JSON map folder -> bool.
+        value: ${{ jobs.changes.outputs.changed }}
+
+permissions: {}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          FOLDERS: ${{ inputs.folders }}
+          SHARED: ${{ inputs.shared }}
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MG_BASE: ${{ github.event.merge_group.base_sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          case "$EVENT" in
+            pull_request) base="$PR_BASE" ;;
+            merge_group)  base="$MG_BASE" ;;
+            push)         base="$PUSH_BEFORE" ;;
+            *)            base="" ;;
+          esac
+
+          all=false
+          if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+            echo "No diff base (event=$EVENT): running everything."; all=true
+          elif ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "Base $base not in history (force push?): running everything."; all=true
+          else
+            # Three-dot: diff against the merge base, correct for PRs and fast-forward pushes.
+            files=$(git diff --name-only "${base}...HEAD")
+            echo "Changed files:"; sed 's/^/  /' <<<"$files"
+            grep -qE "$SHARED" <<<"$files" && all=true
+          fi
+
+          json='{}'
+          for f in $FOLDERS; do
+            if [ "$all" = true ] || grep -q "^${f}/" <<<"${files:-}"; then v=true; else v=false; fi
+            json=$(jq -c --arg k "$f" --argjson v "$v" '. + {($k): $v}' <<<"$json")
+          done
+          echo "changed=$json"
+          echo "changed=$json" >> "$GITHUB_OUTPUT"
