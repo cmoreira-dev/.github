@@ -162,10 +162,10 @@ Cada wave é independente; dá para parar depois de qualquer uma com tudo a func
 | 2 `app.rapporthub` | **concluída 2026-11-28**: idem (imagem `6142c3a`); chart em `gitops/helm/site` |
 | 3 `app.sara` | **concluída 2026-11-28**: idem (api e ui `1325499`); TechDocs por pasta (`techdocs-ref: dir:./api` etc.) |
 | 4 `app.teupadel` | **concluída 2026-11-28**: Applications (incluindo `db-teupadel`, CNPG) adotadas sem restart, cadeia provada para api, ui e processor (`b2e1955`), 4 repos antigos arquivados |
-| 5 documents, matrix-agent | por começar: o painel Esteira tem worktrees ativos sobre PRs destes repos; congelar primeiro |
-| 6 limpeza | por começar |
+| 5 `app.matrix-agent`, `app.documents` | **concluída 2026-11-28**: matrix-agent adotado ~1 min após o merge (requeue já a 600 s, live-infra #74), cadeia `1b3a263`; documents (incluindo `db-documents`) adotado ~9 min após o merge, Tier 2 registado (live-infra #75), `iac-s3` plan/apply sem mudanças a partir do repo novo, cadeia `110f2ac`; 4 repos antigos arquivados. A main do `api.documents` estava partida desde 2026-11-22 (Renovate subiu o Python para 3.15; `pymupdf` puxa `onnxruntime`, sem wheel 3.15): voltou a 3.12 com teto no Renovate |
+| 6 limpeza | ECR `github_repos` e Tier 2 sem os repos arquivados (live-infra #76); nenhum `Prune=false` sobrou no cluster. **Por fazer:** o golden path (`backstage.homelab`, `templates/golden-path/new-app.yaml`) ainda gera `api.*`/`ui.*`/`gitops.*`, e o `catalog-info` do `gitops.template`: reescrita à parte (há um PR do Esteira aberto nos skeletons) |
 
-Lições das waves 1–4:
+Lições das waves 1–5:
 - A adoção leva até um `requeueAfterSeconds` do `app-repos`; depois de esvaziar o `argocd/` antigo o pai `gitops.*` é apagado
   sem cascata e as Applications ficam órfãs mas intactas até lá (wave 4: ~13 min).
 - O `renovate.json` da raiz tem de desligar `gitops/**` exceto `helmv3` em `gitops/helm/**` (os repos gitops antigos
@@ -173,6 +173,11 @@ Lições das waves 1–4:
 - O token do image-updater e o `repo-creds` do Argo (`https://github.com/cmoreira-dev`) já cobrem repos novos; as
   variáveis `AWS_REGION`/`AWS_ROLE_ARN` vêm da org, só `PUBLISH_ENABLED` é do repo.
 - Nos pushes para `main` os jobs `*-build` não correm (só em PR): o `docker build` só fica provado no PR do passo 10.
+- O chart `generic-app` é um pacote GHCR privado que a CI não consegue puxar: os `app.*` versionam
+  `gitops/helm/*/charts/generic-app-<versão>.tgz` (e não podem ter `.gitignore` a excluí-lo). O `app-gitops-validate`
+  tinha um `ls` com `nullglob` que nunca corria o `helm dependency build` (.github#29).
+- Com `iac/`, o primeiro push para `main` corre tudo (sem base de diff), incluindo o apply: empurrar o histórico sem o
+  `ci.yml` e adicioná-lo por PR depois de registar o Tier 2.
 
 ## Segurança (itens abertos, fora destas waves)
 
