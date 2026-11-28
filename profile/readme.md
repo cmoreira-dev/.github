@@ -65,21 +65,25 @@ with workloads and infrastructure managed through **GitOps**.
 | [api.ia.pose-estimation](https://github.com/cmoreira-dev/api.ia.pose-estimation) `🔒` | GPU pose-estimation processor (YOLOv8n-pose / ONNX Runtime). |
 | [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (Next.js SSR). |
 | [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | GitOps deployment for the solution. |
+| [app.teupadel](https://github.com/cmoreira-dev/app.teupadel) `🔒` | Target monorepo (`api/`, `ui/`, `processor/`, `gitops/`); the repos above still deploy until its cutover. |
 
 ### Sara — ad-free chords & lyrics (`sara.cmoreira.dev`)
 
 | Repo | Description |
 |------|-------------|
-| [api.ia.local-sara](https://github.com/cmoreira-dev/api.ia.local-sara) `🔒` | FastAPI backend that resolves Cifra Club chords/lyrics. |
-| [ui.ia.local-sara](https://github.com/cmoreira-dev/ui.ia.local-sara) `🔒` | Ad-free chords/lyrics practice player. |
-| [gitops.local-sara](https://github.com/cmoreira-dev/gitops.local-sara) | GitOps deployment for Sara. |
+| [app.sara](https://github.com/cmoreira-dev/app.sara) `🔒` | `api/` (FastAPI, resolves Cifra Club chords/lyrics), `ui/` (ad-free practice player) and `gitops/`. |
 
 ### psirenatalima.com
 
 | Repo | Description |
 |------|-------------|
-| [ui.psirenatalima.com](https://github.com/cmoreira-dev/ui.psirenatalima.com) `🔒` | Site frontend. |
-| [gitops.psirenatalima.com](https://github.com/cmoreira-dev/gitops.psirenatalima.com) `🔒` | GitOps deployment for the site. |
+| [app.psirenatalima](https://github.com/cmoreira-dev/app.psirenatalima) `🔒` | `ui/` (static Astro site) and `gitops/`. |
+
+### rapporthub.pt
+
+| Repo | Description |
+|------|-------------|
+| [app.rapporthub](https://github.com/cmoreira-dev/app.rapporthub) `🔒` | `ui/` (static institutional site) and `gitops/`. |
 
 ### Convert to 3D — photo to printable 3D model
 

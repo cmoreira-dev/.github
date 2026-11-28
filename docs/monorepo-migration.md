@@ -122,14 +122,17 @@ Saída da Wave 0: `app.convert-to-3d` deployado via ApplicationSet, nenhum produ
 
 **Cutover**
 7. No repo `gitops.<produto>` antigo: adicionar `argocd.argoproj.io/sync-options: Prune=false` às Applications filhas
-   (para o pai antigo nunca as apagar).
-8. No repo novo: preencher `gitops/argocd/` e apagar o `.gitkeep`. O pai novo adota as Applications (mesmos nomes) e passam a ler de
-   `gitops/helm/*` no repo novo. Conferir com o `gitops-auditor`: Synced/Healthy, sem recriação de pods além do
-   esperado (o render tem de ser idêntico).
-9. `PUBLISH_ENABLED=true`; um commit trivial por componente para provar a cadeia toda: build → ECR → write-back do
-   image-updater em `gitops/helm/*/values.yaml` → sync, e que o commit do image-updater não dispara rebuild.
-10. No repo antigo: esvaziar `argocd/` (com `Prune=false` nada é apagado). Arquivar os 2–3 repos antigos no GitHub;
-    com `preserveResourcesOnDeletion` o desaparecimento da Application `gitops.<produto>` não cascateia.
+   e esperar que esteja **live** nas Applications.
+8. No repo antigo: esvaziar `argocd/` (só `.gitkeep`). O pai antigo fica OutOfSync mas não apaga nada (`Prune=false`) e
+   deixa de aplicar as filhas; no requeue seguinte o `gitops-repos` apaga o pai sem cascata
+   (`preserveResourcesOnDeletion`). Tem de vir **antes** do passo 9: com os dois pais a declarar a mesma Application,
+   com `selfHeal`, ficariam a alternar o `repoURL`.
+9. No repo novo: preencher `gitops/argocd/` (mesmos nomes, `repoURL`/`path` novos) e apagar o `.gitkeep`. No requeue
+   do `app-repos` (até 50 min) o pai novo adota as Applications; com render idêntico não há pods novos. Conferir
+   Synced/Healthy.
+10. `PUBLISH_ENABLED=true`; um commit trivial por componente para provar a cadeia: build → ECR → write-back do
+    image-updater em `gitops/helm/*/values.yaml` → sync, e que o commit do image-updater só corre o `gitops-validate`.
+    Depois arquivar os repos antigos (descrição "ARCHIVED <data>: moved to ...").
 
 **Fechar**
 11. Workspace local: clonar em `<pasta-do-produto>/app.<produto>`, apagar os clones antigos.
@@ -150,6 +153,24 @@ reverter o PR do repo novo. Depois do arquivo: desarquivar e fazer o mesmo.
 | 6 | limpeza | — | tirar os repos antigos de `github_repos` e do mapa Tier 2 (PR Tier 1), remover `Prune=false` que sobrar, atualizar o golden path, `catalog-info` do `gitops.template` |
 
 Cada wave é independente; dá para parar depois de qualquer uma com tudo a funcionar.
+
+### Estado das waves
+
+| Wave | Estado |
+|---|---|
+| 1 `app.psirenatalima` | **concluída 2026-11-28**: adotada sem restart, cadeia provada (imagem `6f03607`, write-back `5068a15`), repos antigos arquivados |
+| 2 `app.rapporthub` | **concluída 2026-11-28**: idem (imagem `6142c3a`); chart em `gitops/helm/site` |
+| 3 `app.sara` | **concluída 2026-11-28**: idem (api e ui `1325499`); TechDocs por pasta (`techdocs-ref: dir:./api` etc.) |
+| 4 `app.teupadel` | repo criado e CI verde (testes da API com Postgres, testes do processor, gitops), render Helm e kustomize do CNPG idênticos; **cutover por fazer** (fora de horário de uso; PRs humanos abertos: api.ia.teupadel.com#41, api.ia.pose-estimation#43) |
+| 5 documents, matrix-agent | por começar: o painel Esteira tem worktrees ativos sobre PRs destes repos; congelar primeiro |
+| 6 limpeza | por começar |
+
+Lições das waves 1–3:
+- O `renovate.json` da raiz tem de desligar `gitops/**` exceto `helmv3` em `gitops/helm/**` (os repos gitops antigos
+  tinham `enabledManagers: [helmv3]`); sem isso o manager `helm-values` disputa as tags com o image-updater.
+- O token do image-updater e o `repo-creds` do Argo (`https://github.com/cmoreira-dev`) já cobrem repos novos; as
+  variáveis `AWS_REGION`/`AWS_ROLE_ARN` vêm da org, só `PUBLISH_ENABLED` é do repo.
+- Nos pushes para `main` os jobs `*-build` não correm (só em PR): o `docker build` só fica provado no PR do passo 10.
 
 ## Segurança (itens abertos, fora destas waves)
 

@@ -21,4 +21,8 @@ Rules:
 - Keep Argo Application names when moving an application here: `ImageUpdater` matches them by name, and its
   `writeBackTarget` is relative to the Application's `source.path`, so the write-back follows the new repo.
 - The image-updater commit touches only `gitops/`, so it never rebuilds images.
+- `renovate.json` at the root must disable `gitops/**` and re-enable only `helmv3` under `gitops/helm/**`
+  (copy it from `app.sara`): otherwise the `helm-values` manager fights argocd-image-updater over image tags and
+  Renovate starts bumping pinned manifests such as CNPG images.
+- `AWS_REGION` and `AWS_ROLE_ARN` come from the org; set only `PUBLISH_ENABLED` on the repo.
 - Migration plan from the split `api.*` / `ui.*` / `gitops.*` repos: [monorepo-migration.md](monorepo-migration.md).
