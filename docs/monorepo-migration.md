@@ -161,11 +161,13 @@ Cada wave é independente; dá para parar depois de qualquer uma com tudo a func
 | 1 `app.psirenatalima` | **concluída 2026-11-28**: adotada sem restart, cadeia provada (imagem `6f03607`, write-back `5068a15`), repos antigos arquivados |
 | 2 `app.rapporthub` | **concluída 2026-11-28**: idem (imagem `6142c3a`); chart em `gitops/helm/site` |
 | 3 `app.sara` | **concluída 2026-11-28**: idem (api e ui `1325499`); TechDocs por pasta (`techdocs-ref: dir:./api` etc.) |
-| 4 `app.teupadel` | repo criado e CI verde (testes da API com Postgres, testes do processor, gitops), render Helm e kustomize do CNPG idênticos; **cutover por fazer** |
+| 4 `app.teupadel` | **concluída 2026-11-28**: Applications (incluindo `db-teupadel`, CNPG) adotadas sem restart, cadeia provada para api, ui e processor (`b2e1955`), 4 repos antigos arquivados |
 | 5 documents, matrix-agent | por começar: o painel Esteira tem worktrees ativos sobre PRs destes repos; congelar primeiro |
 | 6 limpeza | por começar |
 
-Lições das waves 1–3:
+Lições das waves 1–4:
+- A adoção leva até um `requeueAfterSeconds` do `app-repos`; depois de esvaziar o `argocd/` antigo o pai `gitops.*` é apagado
+  sem cascata e as Applications ficam órfãs mas intactas até lá (wave 4: ~13 min).
 - O `renovate.json` da raiz tem de desligar `gitops/**` exceto `helmv3` em `gitops/helm/**` (os repos gitops antigos
   tinham `enabledManagers: [helmv3]`); sem isso o manager `helm-values` disputa as tags com o image-updater.
 - O token do image-updater e o `repo-creds` do Argo (`https://github.com/cmoreira-dev`) já cobrem repos novos; as

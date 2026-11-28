@@ -61,11 +61,7 @@ with workloads and infrastructure managed through **GitOps**.
 
 | Repo | Description |
 |------|-------------|
-| [api.ia.teupadel.com](https://github.com/cmoreira-dev/api.ia.teupadel.com) `🔒` | Backend (FastAPI): accounts, bolas, async analysis, report generation. |
-| [api.ia.pose-estimation](https://github.com/cmoreira-dev/api.ia.pose-estimation) `🔒` | GPU pose-estimation processor (YOLOv8n-pose / ONNX Runtime). |
-| [ui.ia.teupadel.com](https://github.com/cmoreira-dev/ui.ia.teupadel.com) `🔒` | Frontend (Next.js SSR). |
-| [gitops.teupadel.com](https://github.com/cmoreira-dev/gitops.teupadel.com) | GitOps deployment for the solution. |
-| [app.teupadel](https://github.com/cmoreira-dev/app.teupadel) `🔒` | Target monorepo (`api/`, `ui/`, `processor/`, `gitops/`); the repos above still deploy until its cutover. |
+| [app.teupadel](https://github.com/cmoreira-dev/app.teupadel) `🔒` | `api/` (FastAPI: accounts, bolas, async analysis, reports), `processor/` (GPU pose estimation, YOLOv8n-pose / ONNX Runtime), `ui/` (Next.js SSR) and `gitops/` (Helm + CNPG). |
 
 ### Sara — ad-free chords & lyrics (`sara.cmoreira.dev`)
 
