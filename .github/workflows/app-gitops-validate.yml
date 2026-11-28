@@ -1,0 +1,64 @@
+name: app-gitops-validate
+
+# Reusable: client-side validation of the gitops/ folder of an app.* monorepo, no cluster access.
+# helm lint + render + kubeconform for every gitops/helm/*, kustomize + kubeconform for every
+# kustomization, kubeconform for gitops/argocd/ (Applications). CRDs are checked against the
+# datreeio catalog.
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        description: Namespace the charts are rendered into (the app's namespace).
+        type: string
+        required: true
+      kubernetes-version:
+        type: string
+        default: 1.33.0
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+        with:
+          version: v3.22.1
+      - name: Install kubeconform (checksum-pinned)
+        run: |
+          curl -sSLo /tmp/kc.tgz https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
+          echo "9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883  /tmp/kc.tgz" | sha256sum -c -
+          sudo tar -xzf /tmp/kc.tgz -C /usr/local/bin kubeconform
+      - name: Validate gitops/
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+          KUBE_VERSION: ${{ inputs.kubernetes-version }}
+        run: |
+          set -euo pipefail
+          CRD_SCHEMAS='https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          kc() { kubeconform -strict -summary -kubernetes-version "$KUBE_VERSION" \
+                   -schema-location default -schema-location "$CRD_SCHEMAS" "$@"; }
+
+          shopt -s nullglob
+          for chart in gitops/helm/*/; do
+            echo "== $chart"
+            # Vendored dependencies (charts/*.tgz) are used as-is; fetch only when missing.
+            if ! ls "$chart"charts/*.tgz >/dev/null 2>&1; then helm dependency build "$chart" >/dev/null; fi
+            helm lint --quiet "$chart"
+            helm template "$(basename "$chart")" "$chart" --namespace "$NAMESPACE" | kc -
+          done
+
+          while IFS= read -r dir; do
+            echo "== $dir"
+            kubectl kustomize "$dir" | kc -
+          done < <(find gitops -name kustomization.yaml -exec dirname {} \;)
+
+          if find gitops/argocd -name '*.yaml' | grep -q .; then
+            echo "== gitops/argocd"
+            # Join files as separate YAML documents (plain cat would merge them into one map).
+            find gitops/argocd -name '*.yaml' -print0 | xargs -0 awk 'FNR==1{print "---"} {print}' | kc -
+          fi

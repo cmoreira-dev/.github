@@ -1,0 +1,7 @@
+{
+  "name": "app.* monorepo CI",
+  "description": "Per-folder CI for an application monorepo (api/, ui/, iac/, gitops/) with a single ci-ok gate.",
+  "iconName": "octicon package",
+  "categories": ["Deployment"],
+  "filePatterns": ["^gitops/argocd/"]
+}

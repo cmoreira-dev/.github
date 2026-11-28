@@ -1,0 +1,152 @@
+name: ci
+
+# CI of an app.* monorepo (one repo per application: api/, ui/, iac/, gitops/).
+# Only the folders that changed run; `ci-ok / ci-ok` is the single required check.
+# Replace <app> and drop the blocks of folders this repo does not have.
+#
+# Repo setup: variables AWS_REGION, AWS_ROLE_ARN (ECR push role), PUBLISH_ENABLED ("true" once the
+# app has moved here), TF_PLAN_ROLE_ARN / TF_APPLY_ROLE_ARN (only with iac/), environment
+# `production` (only with iac/). The image-updater write-back touches only gitops/, so it never
+# rebuilds images.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  # Never cancel a main build half-way (image push, terraform apply); PRs can be superseded.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+    uses: cmoreira-dev/.github/.github/workflows/app-changes.yml@main
+    with:
+      folders: api ui iac gitops
+
+  # ---------------------------------------------------------------- api/
+  api-test:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.changed).api
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The api's own lint and tests (and `services:` such as postgres when it needs them).
+      - run: echo "replace with the api lint and tests" && exit 1
+
+  api-build:
+    # PRs and merge queue: build without pushing (no AWS credentials needed).
+    needs: [changes, api-test]
+    if: fromJSON(needs.changes.outputs.changed).api && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - run: docker buildx build --platform linux/amd64 api
+
+  api-publish:
+    needs: [changes, api-test]
+    if: fromJSON(needs.changes.outputs.changed).api && github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PUBLISH_ENABLED == 'true'
+    permissions:
+      id-token: write
+      contents: read
+    uses: cmoreira-dev/.github/.github/workflows/build-push-ecr.yml@main
+    with:
+      ecr_repository: <app>/api
+      aws_region: ${{ vars.AWS_REGION }}
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      context: api
+      cache_scope: <app>-api
+
+  # ---------------------------------------------------------------- ui/
+  ui-test:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.changed).ui
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  ui-build:
+    needs: [changes, ui-test]
+    if: fromJSON(needs.changes.outputs.changed).ui && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - run: docker buildx build --platform linux/amd64,linux/arm64 ui
+
+  ui-publish:
+    needs: [changes, ui-test]
+    if: fromJSON(needs.changes.outputs.changed).ui && github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PUBLISH_ENABLED == 'true'
+    permissions:
+      id-token: write
+      contents: read
+    uses: cmoreira-dev/.github/.github/workflows/build-push-ecr.yml@main
+    with:
+      ecr_repository: <app>/ui
+      aws_region: ${{ vars.AWS_REGION }}
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      context: ui
+      cache_scope: <app>-ui
+
+  # ---------------------------------------------------------------- iac/
+  # One job per Terraform root under iac/. Plan on PR, apply on main behind `production`.
+  iac:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.changed).iac && github.event_name != 'merge_group'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    uses: cmoreira-dev/.github/.github/workflows/terraform-gitops.yml@main
+    with:
+      directory: iac/<root>
+      plan-role-arn: ${{ vars.TF_PLAN_ROLE_ARN }}
+      apply-role-arn: ${{ vars.TF_APPLY_ROLE_ARN }}
+
+  # ---------------------------------------------------------------- gitops/
+  gitops-validate:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.changed).gitops
+    permissions:
+      contents: read
+    uses: cmoreira-dev/.github/.github/workflows/app-gitops-validate.yml@main
+    with:
+      namespace: <app>
+
+  # ---------------------------------------------------------------- gate
+  ci-ok:
+    if: always()
+    needs: [changes, api-test, api-build, api-publish, ui-test, ui-build, ui-publish, iac, gitops-validate]
+    uses: cmoreira-dev/.github/.github/workflows/app-ci-gate.yml@main
+    with:
+      needs: ${{ toJSON(needs) }}

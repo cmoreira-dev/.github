@@ -1,0 +1,28 @@
+name: app-ci-gate
+
+# Reusable: the single required status check of an app.* monorepo. Jobs skipped because their
+# folder did not change count as success; any failed or cancelled job fails the gate, so path
+# filters never leave a merge pending. Call it with `if: always()` and `needs: <toJSON(needs)>`.
+
+on:
+  workflow_call:
+    inputs:
+      needs:
+        description: toJSON(needs) of the calling job.
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  ci-ok:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          NEEDS: ${{ inputs.needs }}
+        run: |
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          if jq -e '[.[].result] | any(. == "failure" or . == "cancelled")' <<<"$NEEDS" >/dev/null; then
+            echo "::error::A required job failed or was cancelled."; exit 1
+          fi
